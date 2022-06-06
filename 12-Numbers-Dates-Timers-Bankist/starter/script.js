@@ -81,19 +81,27 @@ const inputClosePin = document.querySelector('.form__input--pin');
 /////////////////////////////////////////////////
 // Functions
 
-const displayMovements = function (movements, sort = false) {
+const displayMovements = function (acc, sort = false) {
   containerMovements.innerHTML = '';
 
-  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+  const movs = sort
+    ? acc.movements.slice().sort((a, b) => a - b)
+    : acc.movements;
 
   movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
+    const date = new Date(acc.movementsDates[i]);
+    const day = `${date.getDate()}`.padStart(2, 0);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = date.getFullYear();
 
+    const displayDates = `${day}/${month}/${year}`;
     const html = `
       <div class="movements__row">
         <div class="movements__type movements__type--${type}">${
       i + 1
     } ${type}</div>
+        <div class="movements__date">${displayDates}</div>
         <div class="movements__value">${mov}€</div>
       </div>
     `;
@@ -111,22 +119,21 @@ const calcDisplaySummary = function (acc) {
   const incomes = acc.movements
     .filter(mov => mov > 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumIn.textContent = `${incomes}€`;
+  labelSumIn.textContent = `${Math.trunc(incomes)}€`;
 
   const out = acc.movements
     .filter(mov => mov < 0)
     .reduce((acc, mov) => acc + mov, 0);
-  labelSumOut.textContent = `${Math.abs(out)}€`;
+  labelSumOut.textContent = `${Math.floor(Math.abs(out))}€`;
 
   const interest = acc.movements
     .filter(mov => mov > 0)
     .map(deposit => (deposit * acc.interestRate) / 100)
     .filter((int, i, arr) => {
-      // console.log(arr);
       return int >= 1;
     })
     .reduce((acc, int) => acc + int, 0);
-  labelSumInterest.textContent = `${interest}€`;
+  labelSumInterest.textContent = `${Math.round(interest)}€`;
 };
 
 const createUsernames = function (accs) {
@@ -142,7 +149,7 @@ createUsernames(accounts);
 
 const updateUI = function (acc) {
   // Display movements
-  displayMovements(acc.movements);
+  displayMovements(acc);
 
   // Display balance
   calcDisplayBalance(acc);
@@ -155,6 +162,19 @@ const updateUI = function (acc) {
 // Event handlers
 let currentAccount;
 
+currentAccount = account1;
+updateUI(currentAccount);
+containerApp.style.opacity = 100;
+const now = new Date();
+const options = {
+  minute: 'numeric',
+  hour: 'numeric',
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+};
+const locale = navigator.language;
+labelDate.textContent = new Intl.DateTimeFormat('locale', options).format(now);
 btnLogin.addEventListener('click', function (e) {
   // Prevent form from submitting
   e.preventDefault();
@@ -251,3 +271,32 @@ btnSort.addEventListener('click', function (e) {
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
+
+// ############## setTimeOut() Function #################
+
+// setTimeOut() function recieves a callback and only executes it after the passed time as an argument
+// This is a non-blocking behaviour that allows code execution running in the background
+// This function registers the callback function, and only executes after the given time is over..
+
+setTimeout(
+  function (time) {
+    console.log(`This function has been called after ${time} seconds.`);
+  },
+  3000,
+  3
+); // If this callback function recieves any arguments, that will be passed after the timer
+// This function will only execute this callback once
+
+// ############## setInterval() Function #################
+
+// setInterval() function repeatedly invoke that given callback function after the given time
+// A real usecase maybe a clock
+
+// Run below code to test
+/* setInterval(() => {
+  const currentTime = new Date();
+  console.log(
+    `${currentTime.getHours()}:${currentTime.getMinutes()}:${currentTime.getSeconds()}`
+    
+  );
+}, 1000); */
